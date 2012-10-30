@@ -271,7 +271,56 @@ var DataGridRenderer = {
     
     return outputText;
   },
-  
+
+  //---------------------------------------
+  // PostgreSQL
+  //---------------------------------------
+  postgresql: function (dataGrid, headerNames, headerTypes, indent, newLine) {
+    //inits...
+    var commentLine = "/*";
+    var commentLineEnd = "*/";
+    var outputText = "";
+    var numRows = dataGrid.length;
+    var numColumns = headerNames.length;
+    var tableName = "MrDataConverter"
+    
+    //begin render loop
+    outputText += 'CREATE TABLE '+tableName+' (' + newLine;
+    outputText += indent+"id SERIAL,"+newLine;
+    for (var j=0; j < numColumns; j++) {
+      var dataType = "VARCHAR(255)";
+      if ((headerTypes[j] == "int")||(headerTypes[j] == "float")) {
+        dataType = headerTypes[j].toUpperCase();
+      };
+      outputText += indent+""+headerNames[j]+" "+dataType;
+      if (j < numColumns - 1) {outputText += ","};
+      outputText += newLine;
+    };
+    outputText += ');' + newLine;
+    outputText += "INSERT INTO "+tableName+" "+newLine+indent+"(";
+    for (var j=0; j < numColumns; j++) {
+      outputText += headerNames[j];
+      if (j < numColumns - 1) {outputText += ","};
+    };
+    outputText += ") "+newLine+"VALUES "+newLine;
+    for (var i=0; i < numRows; i++) {
+      outputText += indent+"(";
+      for (var j=0; j < numColumns; j++) {
+        if ((headerTypes[j] == "int")||(headerTypes[j] == "float"))  {
+          outputText += dataGrid[i][j] || "null";
+        } else {
+          outputText += "'"+( dataGrid[i][j] || "" )+"'";
+        };
+        
+        if (j < numColumns - 1) {outputText += ","};
+      };
+      outputText += ")";
+      if (i < numRows - 1) {outputText += ","+newLine;};
+    };
+    outputText += ";";
+    
+    return outputText;
+  },
   
   //---------------------------------------
   // PHP
